@@ -30,6 +30,7 @@
 		17A7E5B01FB53C850044C48F /* Error.wav in Resources */ = {isa = PBXBuildFile; fileRef = 17A7E5AA1FB53C850044C48F /* Error.wav */; };
 		186E13E12069D3DF003EBCA0 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 186E13E02069D3DE003EBCA0 /* LaunchScreen.storyboard */; };
 		5366C88C227233090071B48A /* Cookie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5366C88B227233090071B48A /* Cookie.swift */; };
+		5366C88E2272350F0071B48A /* Level.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5366C88D2272350F0071B48A /* Level.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -58,6 +59,7 @@
 		17A7E5AA1FB53C850044C48F /* Error.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = Error.wav; sourceTree = "<group>"; };
 		186E13E02069D3DE003EBCA0 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		5366C88B227233090071B48A /* Cookie.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cookie.swift; sourceTree = "<group>"; };
+		5366C88D2272350F0071B48A /* Level.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Level.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +100,7 @@
 				1769DFFA1FE383BA00F99A23 /* Array2D.swift */,
 				17A7E59C1FB528160044C48F /* Tile.swift */,
 				5366C88B227233090071B48A /* Cookie.swift */,
+				5366C88D2272350F0071B48A /* Level.swift */,
 				17A7E5711FB513CC0044C48F /* AppDelegate.swift */,
 				17A7E57B1FB513CC0044C48F /* Main.storyboard */,
 				186E13E02069D3DE003EBCA0 /* LaunchScreen.storyboard */,
@@ -227,6 +230,7 @@
 				1769DFF91FE3818B00F99A23 /* LevelData.swift in Sources */,
 				17A7E57A1FB513CC0044C48F /* GameViewController.swift in Sources */,
 				5366C88C227233090071B48A /* Cookie.swift in Sources */,
+				5366C88E2272350F0071B48A /* Level.swift in Sources */,
 				17A7E5721FB513CC0044C48F /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

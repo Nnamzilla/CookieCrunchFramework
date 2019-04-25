@@ -40,6 +40,8 @@ class GameViewController: UIViewController {
   
   // The scene draws the tiles and cookie sprites, and handles swipes.
   var scene: GameScene!
+  var level: Level!
+
   
   var movesLeft = 0
   var score = 0
@@ -75,8 +77,15 @@ class GameViewController: UIViewController {
     scene = GameScene(size: skView.bounds.size)
     scene.scaleMode = .aspectFill
     
+    level = Level(filename: "Level_1")
+    scene.level = level
+
+    
     // Present the scene.
     skView.presentScene(scene)
+    
+    beginGame()
+
   }
   
   // MARK: IBActions
@@ -96,5 +105,15 @@ class GameViewController: UIViewController {
   override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
     return [.portrait, .portraitUpsideDown]
   }
+  
+  func beginGame() {
+    shuffle()
+  }
+  
+  func shuffle() {
+    let newCookies = level.shuffle()
+    scene.addSprites(for: newCookies)
+  }
+
   
 }
