@@ -41,7 +41,8 @@ class GameViewController: UIViewController {
   // The scene draws the tiles and cookie sprites, and handles swipes.
   var scene: GameScene!
   var level: Level!
-
+  var tapGestureRecognizer: UITapGestureRecognizer!
+  var currentLevelNumber = 1
   
   var movesLeft = 0
   var score = 0
@@ -69,7 +70,14 @@ class GameViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    // Configure the view
+    // Setup view with level 1
+    setupLevel(number: currentLevelNumber)
+    
+    // Start the background music.
+    backgroundMusic?.play()
+  }
+  
+  func setupLevel(number levelNumber: Int) {
     let skView = view as! SKView
     skView.isMultipleTouchEnabled = false
     
@@ -77,22 +85,28 @@ class GameViewController: UIViewController {
     scene = GameScene(size: skView.bounds.size)
     scene.scaleMode = .aspectFill
     
-    level = Level(filename: "Level_1")
+    // Setup the level.
+    level = Level(filename: "Level_\(levelNumber)")
     scene.level = level
-
+    
+    scene.addTiles()
     scene.swipeHandler = handleSwipe
-
+    
+    gameOverPanel.isHidden = true
+    shuffleButton.isHidden = true
+    
     // Present the scene.
     skView.presentScene(scene)
-    scene.addTiles()
     
+    // Start the game.
     beginGame()
-
   }
+
   
   // MARK: IBActions
   @IBAction func shuffleButtonPressed(_: AnyObject) {
-    
+    shuffle()
+    decrementMoves()
   }
   
   // MARK: View Controller Functions
@@ -109,10 +123,22 @@ class GameViewController: UIViewController {
   }
   
   func beginGame() {
+    func updateLabels() {
+      targetLabel.text = String(format: "%ld", level.targetScore)
+      movesLabel.text = String(format: "%ld", movesLeft)
+      scoreLabel.text = String(format: "%ld", score)
+    }
+
+    level.resetComboMultiplier()
+    scene.animateBeginGame {
+      self.shuffleButton.isHidden = false
+    }
+
     shuffle()
   }
   
   func shuffle() {
+    scene.removeAllCookieSprites()
     let newCookies = level.shuffle()
     scene.addSprites(for: newCookies)
   }
@@ -122,9 +148,7 @@ class GameViewController: UIViewController {
     
     if level.isPossibleSwap(swap) {
       level.performSwap(swap)
-      scene.animate(swap) {
-        self.view.isUserInteractionEnabled = true
-      }
+      scene.animate(swap, completion: handleMatches)
     } else {
       scene.animateInvalidSwap(swap) {
         self.view.isUserInteractionEnabled = true
@@ -133,7 +157,75 @@ class GameViewController: UIViewController {
     }
   }
 
+  func handleMatches() {
+    let chains = level.removeMatches()
+    if chains.count == 0 {
+      beginNextTurn()
+      return
+    }
+    scene.animateMatchedCookies(for: chains) {
+      for chain in chains {
+        self.score += chain.score
+      }
+      self.updateLabels()
 
+      let columns = self.level.fillHoles()
+      self.scene.animateFallingCookies(in: columns) {
+        let columns = self.level.topUpCookies()
+        self.scene.animateNewCookies(in: columns) {
+          self.handleMatches()
+        }
+      }
+    }
+  }
+
+  func beginNextTurn() {
+    level.resetComboMultiplier()
+    level.detectPossibleSwaps()
+    view.isUserInteractionEnabled = true
+    decrementMoves()
+  }
+
+  func updateLabels() {
+    targetLabel.text = String(format: "%ld", level.targetScore)
+    movesLabel.text = String(format: "%ld", movesLeft)
+    scoreLabel.text = String(format: "%ld", score)
+  }
+
+  func decrementMoves() {
+    movesLeft -= 1
+    updateLabels()
+    
+    if score >= level.targetScore {
+      gameOverPanel.image = UIImage(named: "LevelComplete")
+      currentLevelNumber = currentLevelNumber < numLevels ? currentLevelNumber + 1 : 1
+      showGameOver()
+    } else if movesLeft == 0 {
+      gameOverPanel.image = UIImage(named: "GameOver")
+      showGameOver()
+    }
+  }
+
+  func showGameOver() {
+    gameOverPanel.isHidden = false
+    scene.isUserInteractionEnabled = false
+    shuffleButton.isHidden = true
+    
+    scene.animateGameOver {
+      self.tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(self.hideGameOver))
+      self.view.addGestureRecognizer(self.tapGestureRecognizer)
+    }
+  }
+
+  @objc func hideGameOver() {
+    view.removeGestureRecognizer(tapGestureRecognizer)
+    tapGestureRecognizer = nil
+    
+    gameOverPanel.isHidden = true
+    scene.isUserInteractionEnabled = true
+    
+    setupLevel(number: currentLevelNumber)
+  }
 
   
 }
