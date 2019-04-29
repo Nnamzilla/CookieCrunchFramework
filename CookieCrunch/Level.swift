@@ -36,6 +36,9 @@ class Level {
   
   private var tiles = Array2D<Tile>(columns: numColumns, rows: numRows)
   
+  private var possibleSwaps: Set<Swap> = []
+
+  
   init(filename: String) {
     // 1
     guard let levelData = LevelData.loadFrom(file: filename) else { return }
@@ -85,8 +88,128 @@ class Level {
 
   
   func shuffle() -> Set<Cookie> {
-    return createInitialCookies()
+    var set: Set<Cookie>
+    repeat {
+      set = createInitialCookies()
+      detectPossibleSwaps()
+      print("possible swaps: \(possibleSwaps)")
+    } while possibleSwaps.count == 0
+    
+    return set
   }
+  
+  func detectPossibleSwaps() {
+    var set: Set<Swap> = []
+    
+    for row in 0..<numRows {
+      for column in 0..<numColumns {
+        if let cookie = cookies[column, row] {
+          
+          // TODO: detection logic goes here
+          // Have a cookie in this spot? If there is no tile, there is no cookie.
+          if column < numColumns - 1,
+            let other = cookies[column + 1, row] {
+            // Swap them
+            cookies[column, row] = other
+            cookies[column + 1, row] = cookie
+            
+            // Is either cookie now part of a chain?
+            if hasChain(atColumn: column + 1, row: row) ||
+              hasChain(atColumn: column, row: row) {
+              set.insert(Swap(cookieA: cookie, cookieB: other))
+            }
+            
+            // Swap them back
+            cookies[column, row] = cookie
+            cookies[column + 1, row] = other
+          }
+          
+          if row < numRows - 1,
+            let other = cookies[column, row + 1] {
+            cookies[column, row] = other
+            cookies[column, row + 1] = cookie
+            
+            // Is either cookie now part of a chain?
+            if hasChain(atColumn: column, row: row + 1) ||
+              hasChain(atColumn: column, row: row) {
+              set.insert(Swap(cookieA: cookie, cookieB: other))
+            }
+            
+            // Swap them back
+            cookies[column, row] = cookie
+            cookies[column, row + 1] = other
+          }
+        }
+        else if column == numColumns - 1, let cookie = cookies[column, row] {
+          if row < numRows - 1,
+            let other = cookies[column, row + 1] {
+            cookies[column, row] = other
+            cookies[column, row + 1] = cookie
+            
+            // Is either cookie now part of a chain?
+            if hasChain(atColumn: column, row: row + 1) ||
+              hasChain(atColumn: column, row: row) {
+              set.insert(Swap(cookieA: cookie, cookieB: other))
+            }
+            
+            // Swap them back
+            cookies[column, row] = cookie
+            cookies[column, row + 1] = other
+          }
+
+
+        }
+      }
+    }
+    
+    possibleSwaps = set
+  }
+
+  func isPossibleSwap(_ swap: Swap) -> Bool {
+    return possibleSwaps.contains(swap)
+  }
+
+  
+  private func hasChain(atColumn column: Int, row: Int) -> Bool {
+    let cookieType = cookies[column, row]!.cookieType
+    
+    // Horizontal chain check
+    var horizontalLength = 1
+    
+    // Left
+    var i = column - 1
+    while i >= 0 && cookies[i, row]?.cookieType == cookieType {
+      i -= 1
+      horizontalLength += 1
+    }
+    
+    // Right
+    i = column + 1
+    while i < numColumns && cookies[i, row]?.cookieType == cookieType {
+      i += 1
+      horizontalLength += 1
+    }
+    if horizontalLength >= 3 { return true }
+    
+    // Vertical chain check
+    var verticalLength = 1
+    
+    // Down
+    i = row - 1
+    while i >= 0 && cookies[column, i]?.cookieType == cookieType {
+      i -= 1
+      verticalLength += 1
+    }
+    
+    // Up
+    i = row + 1
+    while i < numRows && cookies[column, i]?.cookieType == cookieType {
+      i += 1
+      verticalLength += 1
+    }
+    return verticalLength >= 3
+  }
+
   
   private func createInitialCookies() -> Set<Cookie> {
     var set: Set<Cookie> = []
@@ -97,7 +220,16 @@ class Level {
         
         // 2
         if tiles[column, row] != nil {
-          let cookieType = CookieType.random()
+          var cookieType: CookieType
+          repeat {
+            cookieType = CookieType.random()
+          } while (column >= 2 &&
+            cookies[column - 1, row]?.cookieType == cookieType &&
+            cookies[column - 2, row]?.cookieType == cookieType)
+            || (row >= 2 &&
+              cookies[column, row - 1]?.cookieType == cookieType &&
+              cookies[column, row - 2]?.cookieType == cookieType)
+
         
           // 3
           let cookie = Cookie(column: column, row: row, cookieType: cookieType)
